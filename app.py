@@ -16,8 +16,11 @@ def call_price(S0,K,r,sigma,T):
 def put_price(S0, K, r, sigma, T):
     return -S0*norm.cdf(-d1(S0,K,r,sigma,T)) + K*exp(-r*T)*norm.cdf(-d0(S0,K,r,sigma,T))
 
-def delta(S0, K, r, sigma, T):
+def delta_call(S0, K, r, sigma, T):
     return norm.cdf(d1(S0,K,r,sigma,T))
+
+def delta_put(S0, K, r, sigma, T):
+    return norm.cdf(d1(S0,K,r,sigma,T)) - 1
 
 def gamma(S0, K, r, sigma, T):
     return norm.pdf(d1(S0,K,r,sigma,T))/(S0*sigma*sqrt(T))
@@ -25,8 +28,11 @@ def gamma(S0, K, r, sigma, T):
 def vega(S0, K, r, sigma, T):
     return S0*norm.pdf(d1(S0,K,r,sigma,T))*sqrt(T)
 
-def theta(S0, K, r, sigma, T):
+def theta_call(S0, K, r, sigma, T):
     return -S0*norm.pdf(d1(S0,K,r,sigma,T))*sigma/(2*sqrt(T)) - r*K*exp(-r*T)*norm.cdf(d0(S0,K,r,sigma,T))
+
+def theta_put(S0, K, r, sigma, T):
+    return -S0*norm.pdf(d1(S0,K,r,sigma,T))*sigma/(2*sqrt(T)) + r*K*exp(-r*T)*norm.cdf(-d0(S0,K,r,sigma,T))
 
 @app.route('/')
 def index():
@@ -44,18 +50,22 @@ def calculate():
     call = call_price(S0, K, r, sigma, T)
     put = put_price(S0, K, r, sigma, T)
     
-    delta_value = delta(S0, K, r, sigma, T)
+    delta_call_value = delta_call(S0, K, r, sigma, T)
+    delta_put_value = delta_put(S0, K, r, sigma, T)
     gamma_value = gamma(S0, K, r, sigma, T)
     vega_value = vega(S0, K, r, sigma, T)
-    theta_value = theta(S0, K, r, sigma, T)
+    theta_call_value = theta_call(S0, K, r, sigma, T)
+    theta_put_value = theta_put(S0, K, r, sigma, T)
     
     return jsonify({
         'call': round(call, 6),
         'put': round(put, 6),
-        'delta': round(delta_value, 6),
+        'delta_call': round(delta_call_value, 6),
+        'delta_put': round(delta_put_value, 6),
         'gamma': round(gamma_value, 6),
         'vega': round(vega_value, 6),
-        'theta': round(theta_value, 6)
+        'theta_call': round(theta_call_value, 6),
+        'theta_put': round(theta_put_value, 6)
     })
 
 if __name__ == '__main__':
