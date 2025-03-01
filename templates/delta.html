@@ -65,24 +65,42 @@
         <div class="row plot-row">
             <div class="col-md-6">
                 <div id="deltaPlot"></div>
+                <div class="slider-container">
+                    <label for="deltaSlider" class="form-label">Volatility (σ):
+                        <span class="value-display">0.25</span>
+                    </label>
+                    <input type="range" class="form-range volatility-slider" id="deltaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                </div>
             </div>
             <div class="col-md-6">
                 <div id="gammaPlot"></div>
+                <div class="slider-container">
+                    <label for="gammaSlider" class="form-label">Volatility (σ):
+                        <span class="value-display">0.25</span>
+                    </label>
+                    <input type="range" class="form-range volatility-slider" id="gammaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                </div>
             </div>
         </div>
         <div class="row plot-row">
             <div class="col-md-6">
                 <div id="vegaPlot"></div>
+                <div class="slider-container">
+                    <label for="vegaSlider" class="form-label">Volatility (σ):
+                        <span class="value-display">0.25</span>
+                    </label>
+                    <input type="range" class="form-range volatility-slider" id="vegaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                </div>
             </div>
             <div class="col-md-6">
                 <div id="thetaPlot"></div>
+                <div class="slider-container">
+                    <label for="thetaSlider" class="form-label">Volatility (σ):
+                        <span class="value-display">0.25</span>
+                    </label>
+                    <input type="range" class="form-range volatility-slider" id="thetaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                </div>
             </div>
-        </div>
-        <div class="slider-container">
-            <label for="sigmaSlider" class="form-label">Volatility (σ):
-                <span id="sigmaValue" class="value-display">0.25</span>
-            </label>
-            <input type="range" class="form-range" id="sigmaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
         </div>
     </div>
 
@@ -125,8 +143,16 @@
         }
 
         function updatePlots() {
-            const sigma = parseFloat(document.getElementById('sigmaSlider').value);
-            document.getElementById('sigmaValue').textContent = sigma.toFixed(2);
+            // Get the value from the slider that triggered the update
+            const sigma = parseFloat(document.querySelector('.volatility-slider:focus') ? 
+                document.querySelector('.volatility-slider:focus').value : 
+                document.querySelector('.volatility-slider').value);
+
+            // Update all sliders and their displays to match
+            document.querySelectorAll('.volatility-slider').forEach(slider => {
+                slider.value = sigma;
+                slider.parentElement.querySelector('.value-display').textContent = sigma.toFixed(2);
+            });
 
             // Generate data points
             const S_values = [];
@@ -143,109 +169,48 @@
                 theta_values.push(theta_call(S, K, r, sigma, T));
             }
 
-            // Delta Plot
-            const deltaTrace = {
-                x: S_values,
-                y: delta_values,
-                mode: 'lines',
-                name: `Delta (σ = ${sigma.toFixed(2)})`
-            };
+            // Update all plots with new data
+            const plots = [
+                { id: 'deltaPlot', values: delta_values, title: 'Delta Call Option', yaxis: 'Delta' },
+                { id: 'gammaPlot', values: gamma_values, title: 'Gamma Option', yaxis: 'Gamma' },
+                { id: 'vegaPlot', values: vega_values, title: 'Vega Option', yaxis: 'Vega' },
+                { id: 'thetaPlot', values: theta_values, title: 'Theta Option', yaxis: 'Theta' }
+            ];
 
-            const deltaLayout = {
-                title: 'Delta Call Option',
-                xaxis: {
-                    title: 'Stock Price (S)',
-                    gridcolor: '#e2e8f0'
-                },
-                yaxis: {
-                    title: 'Delta',
-                    gridcolor: '#e2e8f0'
-                },
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white',
-                showlegend: true
-            };
+            plots.forEach(plot => {
+                const trace = {
+                    x: S_values,
+                    y: plot.values,
+                    mode: 'lines',
+                    name: `${plot.yaxis} (σ = ${sigma.toFixed(2)})`
+                };
 
-            // Gamma Plot
-            const gammaTrace = {
-                x: S_values,
-                y: gamma_values,
-                mode: 'lines',
-                name: `Gamma (σ = ${sigma.toFixed(2)})`
-            };
+                const layout = {
+                    title: plot.title,
+                    xaxis: {
+                        title: 'Stock Price (S)',
+                        gridcolor: '#e2e8f0'
+                    },
+                    yaxis: {
+                        title: plot.yaxis,
+                        gridcolor: '#e2e8f0'
+                    },
+                    plot_bgcolor: 'white',
+                    paper_bgcolor: 'white',
+                    showlegend: true
+                };
 
-            const gammaLayout = {
-                title: 'Gamma Option',
-                xaxis: {
-                    title: 'Stock Price (S)',
-                    gridcolor: '#e2e8f0'
-                },
-                yaxis: {
-                    title: 'Gamma',
-                    gridcolor: '#e2e8f0'
-                },
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white',
-                showlegend: true
-            };
-
-            // Vega Plot
-            const vegaTrace = {
-                x: S_values,
-                y: vega_values,
-                mode: 'lines',
-                name: `Vega (σ = ${sigma.toFixed(2)})`
-            };
-
-            const vegaLayout = {
-                title: 'Vega Option',
-                xaxis: {
-                    title: 'Stock Price (S)',
-                    gridcolor: '#e2e8f0'
-                },
-                yaxis: {
-                    title: 'Vega',
-                    gridcolor: '#e2e8f0'
-                },
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white',
-                showlegend: true
-            };
-
-            // Theta Plot
-            const thetaTrace = {
-                x: S_values,
-                y: theta_values,
-                mode: 'lines',
-                name: `Theta (σ = ${sigma.toFixed(2)})`
-            };
-
-            const thetaLayout = {
-                title: 'Theta Option',
-                xaxis: {
-                    title: 'Stock Price (S)',
-                    gridcolor: '#e2e8f0'
-                },
-                yaxis: {
-                    title: 'Theta',
-                    gridcolor: '#e2e8f0'
-                },
-                plot_bgcolor: 'white',
-                paper_bgcolor: 'white',
-                showlegend: true
-            };
-
-            Plotly.newPlot('deltaPlot', [deltaTrace], deltaLayout);
-            Plotly.newPlot('gammaPlot', [gammaTrace], gammaLayout);
-            Plotly.newPlot('vegaPlot', [vegaTrace], vegaLayout);
-            Plotly.newPlot('thetaPlot', [thetaTrace], thetaLayout);
+                Plotly.newPlot(plot.id, [trace], layout);
+            });
         }
 
         // Initial plots
         updatePlots();
 
-        // Update plots when slider changes
-        document.getElementById('sigmaSlider').addEventListener('input', updatePlots);
+        // Add event listeners to all sliders
+        document.querySelectorAll('.volatility-slider').forEach(slider => {
+            slider.addEventListener('input', updatePlots);
+        });
     </script>
 </body>
 </html>
