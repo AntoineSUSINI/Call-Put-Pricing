@@ -40,7 +40,7 @@ def index():
 
 @app.route('/greeks')
 def greeks():
-    return render_template('delta.html')
+    return render_template('greeks.html')
 
 @app.route('/calculate', methods=['POST'])
 def calculate():

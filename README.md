@@ -1,76 +1,93 @@
 # Black-Scholes Option Calculator
 
-A web-based calculator for pricing European options using the Black-Scholes model. This application calculates option prices and Greeks (Delta, Gamma, Vega, and Theta) to help traders and analysts in their decision-making process.
+A web-based calculator for pricing European options using the Black-Scholes model. This application provides an intuitive interface for calculating option prices and visualizing the Greeks (Delta, Gamma, Vega, and Theta) to assist traders and analysts in their decision-making process.
 
 ## Features
 
-- Calculate Call and Put option prices using the Black-Scholes model
-- Compute important option Greeks:
+- Interactive web interface for option pricing calculations
+- Real-time calculation of Call and Put option prices
+- Visualization of important option Greeks:
   - Delta (Δ): Measures the rate of change in option value with respect to the underlying asset's price
   - Gamma (Γ): Measures the rate of change in Delta with respect to the underlying asset's price
   - Vega (ν): Measures sensitivity to volatility
   - Theta (Θ): Measures the rate of time decay
+- Interactive graphs with adjustable volatility parameters
+- Modern, responsive design with intuitive controls
 
 ## Prerequisites
 
 - Python 3.x
 - Flask
 - SciPy
+- Plotly.js (included via CDN)
+- Bootstrap 5 (included via CDN)
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd Call-Put-Pricing
+git clone [repository-url]
+cd black-scholes-calculator
 ```
 
-2. Install the required dependencies:
+2. Install the required Python packages:
 ```bash
-pip install flask scipy
+pip install flask scipy numpy
 ```
 
-## Usage
-
-1. Start the Flask server:
+3. Run the application:
 ```bash
 python app.py
 ```
 
-2. Open your web browser and navigate to `http://localhost:5000`
+4. Open your web browser and navigate to `http://localhost:5000`
 
-3. Enter the following parameters:
-   - S0: Current price of the underlying asset
-   - K: Strike price of the option
-   - r: Risk-free interest rate (as a decimal, e.g., 0.05 for 5%)
-   - σ (sigma): Volatility of the underlying asset (as a decimal)
-   - T: Time to expiration (in years)
+## Usage
+
+### Option Price Calculator
+1. Enter the following parameters:
+   - Stock Price (S₀)
+   - Strike Price (K)
+   - Time to Maturity (T)
+   - Risk-free Rate (r)
+   - Volatility (σ)
+2. The calculator will instantly display:
+   - Call Option Price
+   - Put Option Price
+   - Greeks values (Delta, Gamma, Vega, Theta)
+
+### Greeks Visualization
+1. Navigate to the Greeks page
+2. Use the interactive sliders to adjust volatility
+3. Observe how the Greeks change with respect to the stock price
 
 ## Mathematical Background
 
-The Black-Scholes model uses the following formulas:
+### Black-Scholes Formula
+The Black-Scholes model calculates the theoretical price of European-style options using the following variables:
+- S: Current stock price
+- K: Strike price
+- r: Risk-free interest rate
+- T: Time to maturity
+- σ: Volatility of the stock
 
-### Option Prices
-- Call Option Price = S₀N(d₁) - Ke^(-rT)N(d₂)
-- Put Option Price = Ke^(-rT)N(-d₂) - S₀N(-d₁)
+The formulas for call (C) and put (P) options are:
+```
+d1 = (ln(S/K) + (r + σ²/2)T) / (σ√T)
+d2 = d1 - σ√T
 
-Where:
-- d₁ = (ln(S₀/K) + (r + σ²/2)T) / (σ√T)
-- d₂ = d₁ - σ√T
-- N(x) is the cumulative distribution function of the standard normal distribution
-
-### Greeks
-- Delta (Call) = N(d₁)
-- Delta (Put) = N(d₁) - 1
-- Gamma = N'(d₁) / (S₀σ√T)
-- Vega = S₀N'(d₁)√T
-- Theta (Call) = -S₀N'(d₁)σ/(2√T) - rKe^(-rT)N(d₂)
-- Theta (Put) = -S₀N'(d₁)σ/(2√T) + rKe^(-rT)N(-d₂)
+C = SN(d1) - Ke^(-rT)N(d2)
+P = Ke^(-rT)N(-d2) - SN(-d1)
+```
+where N(x) is the cumulative distribution function of the standard normal distribution.
 
 ## Project Structure
 
 - `app.py`: Main Flask application with Black-Scholes calculations
-- `templates/index.html`: Web interface for the calculator
+- `templates/`
+  - `index.html`: Main calculator interface
+  - `delta.html`: Greeks visualization interface
+  - `navbar.html`: Navigation component
 - `call-put-pricing.ipynb`: Jupyter notebook with example calculations
 
 ## License

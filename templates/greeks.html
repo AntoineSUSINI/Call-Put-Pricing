@@ -19,7 +19,7 @@
             max-width: 1200px;
             background-color: transparent;
             padding: 0;
-            border-radius: 0;
+            border-radius: 12px;
             box-shadow: none;
         }
         h1 {
@@ -29,9 +29,11 @@
             font-size: 2.5rem;
             letter-spacing: -0.02em;
         }
-        #plot {
+        #plot, #deltaPlot, #gammaPlot, #vegaPlot, #thetaPlot {
             margin-top: 1rem;
             margin-bottom: 1rem;
+            border-radius: 12px;
+            overflow: hidden;
         }
         .slider-container {
             margin: 2rem 0;
@@ -61,7 +63,7 @@
 <body>
     {% include 'navbar.html' %}
     <div class="container">
-        <h1>Delta Curve Visualization</h1>
+        <h1>Greek Curves Visualization</h1>
         <div class="row plot-row">
             <div class="col-md-6">
                 <div id="deltaPlot"></div>
