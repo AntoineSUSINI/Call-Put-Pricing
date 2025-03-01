@@ -53,13 +53,31 @@
             font-feature-settings: "tnum";
             letter-spacing: -0.01em;
         }
+        .plot-row {
+            margin-bottom: 2rem;
+        }
     </style>
 </head>
 <body>
     {% include 'navbar.html' %}
     <div class="container">
         <h1>Delta Curve Visualization</h1>
-        <div id="plot"></div>
+        <div class="row plot-row">
+            <div class="col-md-6">
+                <div id="deltaPlot"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="gammaPlot"></div>
+            </div>
+        </div>
+        <div class="row plot-row">
+            <div class="col-md-6">
+                <div id="vegaPlot"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="thetaPlot"></div>
+            </div>
+        </div>
         <div class="slider-container">
             <label for="sigmaSlider" class="form-label">Volatility (σ):
                 <span id="sigmaValue" class="value-display">0.25</span>
@@ -89,26 +107,51 @@
             return norm_cdf(d1(S, K, r, sigma, T));
         }
 
-        function updatePlot() {
+        function gamma(S, K, r, sigma, T) {
+            const d1_val = d1(S, K, r, sigma, T);
+            return Math.exp(-d1_val * d1_val / 2) / (S * sigma * Math.sqrt(2 * Math.PI * T));
+        }
+
+        function vega(S, K, r, sigma, T) {
+            const d1_val = d1(S, K, r, sigma, T);
+            return S * Math.sqrt(T) * Math.exp(-d1_val * d1_val / 2) / Math.sqrt(2 * Math.PI);
+        }
+
+        function theta_call(S, K, r, sigma, T) {
+            const d1_val = d1(S, K, r, sigma, T);
+            const d2 = d1_val - sigma * Math.sqrt(T);
+            return (-S * sigma * Math.exp(-d1_val * d1_val / 2) / (2 * Math.sqrt(2 * Math.PI * T)) - 
+                    r * K * Math.exp(-r * T) * norm_cdf(d2));
+        }
+
+        function updatePlots() {
             const sigma = parseFloat(document.getElementById('sigmaSlider').value);
             document.getElementById('sigmaValue').textContent = sigma.toFixed(2);
 
             // Generate data points
             const S_values = [];
             const delta_values = [];
+            const gamma_values = [];
+            const vega_values = [];
+            const theta_values = [];
+            
             for(let S = 50; S <= 150; S += 0.5) {
                 S_values.push(S);
                 delta_values.push(delta_call(S, K, r, sigma, T));
+                gamma_values.push(gamma(S, K, r, sigma, T));
+                vega_values.push(vega(S, K, r, sigma, T));
+                theta_values.push(theta_call(S, K, r, sigma, T));
             }
 
-            const trace = {
+            // Delta Plot
+            const deltaTrace = {
                 x: S_values,
                 y: delta_values,
                 mode: 'lines',
                 name: `Delta (σ = ${sigma.toFixed(2)})`
             };
 
-            const layout = {
+            const deltaLayout = {
                 title: 'Delta Call Option',
                 xaxis: {
                     title: 'Stock Price (S)',
@@ -123,14 +166,86 @@
                 showlegend: true
             };
 
-            Plotly.newPlot('plot', [trace], layout);
+            // Gamma Plot
+            const gammaTrace = {
+                x: S_values,
+                y: gamma_values,
+                mode: 'lines',
+                name: `Gamma (σ = ${sigma.toFixed(2)})`
+            };
+
+            const gammaLayout = {
+                title: 'Gamma Option',
+                xaxis: {
+                    title: 'Stock Price (S)',
+                    gridcolor: '#e2e8f0'
+                },
+                yaxis: {
+                    title: 'Gamma',
+                    gridcolor: '#e2e8f0'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                showlegend: true
+            };
+
+            // Vega Plot
+            const vegaTrace = {
+                x: S_values,
+                y: vega_values,
+                mode: 'lines',
+                name: `Vega (σ = ${sigma.toFixed(2)})`
+            };
+
+            const vegaLayout = {
+                title: 'Vega Option',
+                xaxis: {
+                    title: 'Stock Price (S)',
+                    gridcolor: '#e2e8f0'
+                },
+                yaxis: {
+                    title: 'Vega',
+                    gridcolor: '#e2e8f0'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                showlegend: true
+            };
+
+            // Theta Plot
+            const thetaTrace = {
+                x: S_values,
+                y: theta_values,
+                mode: 'lines',
+                name: `Theta (σ = ${sigma.toFixed(2)})`
+            };
+
+            const thetaLayout = {
+                title: 'Theta Option',
+                xaxis: {
+                    title: 'Stock Price (S)',
+                    gridcolor: '#e2e8f0'
+                },
+                yaxis: {
+                    title: 'Theta',
+                    gridcolor: '#e2e8f0'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                showlegend: true
+            };
+
+            Plotly.newPlot('deltaPlot', [deltaTrace], deltaLayout);
+            Plotly.newPlot('gammaPlot', [gammaTrace], gammaLayout);
+            Plotly.newPlot('vegaPlot', [vegaTrace], vegaLayout);
+            Plotly.newPlot('thetaPlot', [thetaTrace], thetaLayout);
         }
 
-        // Initial plot
-        updatePlot();
+        // Initial plots
+        updatePlots();
 
-        // Update plot when slider changes
-        document.getElementById('sigmaSlider').addEventListener('input', updatePlot);
+        // Update plots when slider changes
+        document.getElementById('sigmaSlider').addEventListener('input', updatePlots);
     </script>
 </body>
 </html>

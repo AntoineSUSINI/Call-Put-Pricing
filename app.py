@@ -38,8 +38,8 @@ def theta_put(S0, K, r, sigma, T):
 def index():
     return render_template('index.html')
 
-@app.route('/delta')
-def delta():
+@app.route('/greeks')
+def greeks():
     return render_template('delta.html')
 
 @app.route('/calculate', methods=['POST'])
