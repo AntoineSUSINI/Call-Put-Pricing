@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delta Curve - Black-Scholes</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body { 
+            padding: 30px; 
+            background-color: #f5f7fa;
+            color: #2d3748;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        h1 {
+            color: #1a365d;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            letter-spacing: -0.02em;
+        }
+        #plot {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .slider-container {
+            margin: 2rem 0;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            letter-spacing: -0.01em;
+        }
+        .form-range {
+            width: 100%;
+        }
+        .value-display {
+            font-weight: 600;
+            color: #2d3748;
+            margin-left: 1rem;
+            font-feature-settings: "tnum";
+            letter-spacing: -0.01em;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container">
+        <h1>Delta Curve Visualization</h1>
+        <div id="plot"></div>
+        <div class="slider-container">
+            <label for="sigmaSlider" class="form-label">Volatility (σ):
+                <span id="sigmaValue" class="value-display">0.25</span>
+            </label>
+            <input type="range" class="form-range" id="sigmaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+        </div>
+    </div>
+
+    <script>
+        // Constants
+        const K = 100;  // Strike price
+        const r = 0.05; // Risk-free rate
+        const T = 1;    // Time to maturity
+
+        function norm_cdf(x) {
+            let t = 1 / (1 + 0.2316419 * Math.abs(x));
+            let d = 0.3989423 * Math.exp(-x * x / 2);
+            let p = d * t * ((((1.330274429 * t - 1.821255978) * t + 1.781477937) * t - 0.356563782) * t + 0.319381530);
+            return x >= 0 ? 1 - p : p;
+        }
+
+        function d1(S, K, r, sigma, T) {
+            return (Math.log(S/K) + (r + sigma * sigma / 2) * T) / (sigma * Math.sqrt(T));
+        }
+
+        function delta_call(S, K, r, sigma, T) {
+            return norm_cdf(d1(S, K, r, sigma, T));
+        }
+
+        function updatePlot() {
+            const sigma = parseFloat(document.getElementById('sigmaSlider').value);
+            document.getElementById('sigmaValue').textContent = sigma.toFixed(2);
+
+            // Generate data points
+            const S_values = [];
+            const delta_values = [];
+            for(let S = 50; S <= 150; S += 0.5) {
+                S_values.push(S);
+                delta_values.push(delta_call(S, K, r, sigma, T));
+            }
+
+            const trace = {
+                x: S_values,
+                y: delta_values,
+                mode: 'lines',
+                name: `Delta (σ = ${sigma.toFixed(2)})`
+            };
+
+            const layout = {
+                title: 'Delta Call Option',
+                xaxis: {
+                    title: 'Stock Price (S)',
+                    gridcolor: '#e2e8f0'
+                },
+                yaxis: {
+                    title: 'Delta',
+                    gridcolor: '#e2e8f0'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                showlegend: true
+            };
+
+            Plotly.newPlot('plot', [trace], layout);
+        }
+
+        // Initial plot
+        updatePlot();
+
+        // Update plot when slider changes
+        document.getElementById('sigmaSlider').addEventListener('input', updatePlot);
+    </script>
+</body>
+</html>
