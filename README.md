@@ -86,7 +86,7 @@ where N(x) is the cumulative distribution function of the standard normal distri
 - `app.py`: Main Flask application with Black-Scholes calculations
 - `templates/`
   - `index.html`: Main calculator interface
-  - `delta.html`: Greeks visualization interface
+  - `greeks.html`: Greeks visualization interface
   - `navbar.html`: Navigation component
 - `call-put-pricing.ipynb`: Jupyter notebook with example calculations
 
