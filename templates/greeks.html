@@ -66,21 +66,31 @@
         <h1>Greek Curves Visualization</h1>
         <div class="row plot-row">
             <div class="col-md-6">
-                <div id="deltaPlot"></div>
+                <div style="position: relative;">
+                    <div style="position: absolute; top: 10px; right: 10px; z-index: 1;">
+                        <select class="form-select form-select-sm w-auto" id="deltaTypeSelector">
+                            <option value="call">Call</option>
+                            <option value="put">Put</option>
+                        </select>
+                    </div>
+                    <div id="deltaPlot"></div>
+                </div>
                 <div class="slider-container">
-                    <label for="deltaSlider" class="form-label">Volatility (σ):
-                        <span class="value-display">0.25</span>
+                    <label for="deltaSlider" class="form-label">
+                        <span>Volatility (σ):
+                            <span class="value-display">0.15</span>
+                        </span>
                     </label>
-                    <input type="range" class="form-range volatility-slider" id="deltaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                    <input type="range" class="form-range volatility-slider" id="deltaSlider" min="0.05" max="1.0" step="0.05" value="0.15">
                 </div>
             </div>
             <div class="col-md-6">
                 <div id="gammaPlot"></div>
                 <div class="slider-container">
                     <label for="gammaSlider" class="form-label">Volatility (σ):
-                        <span class="value-display">0.25</span>
+                        <span class="value-display">0.15</span>
                     </label>
-                    <input type="range" class="form-range volatility-slider" id="gammaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                    <input type="range" class="form-range volatility-slider" id="gammaSlider" min="0.05" max="1.0" step="0.05" value="0.15">
                 </div>
             </div>
         </div>
@@ -89,18 +99,28 @@
                 <div id="vegaPlot"></div>
                 <div class="slider-container">
                     <label for="vegaSlider" class="form-label">Volatility (σ):
-                        <span class="value-display">0.25</span>
+                        <span class="value-display">0.15</span>
                     </label>
-                    <input type="range" class="form-range volatility-slider" id="vegaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                    <input type="range" class="form-range volatility-slider" id="vegaSlider" min="0.05" max="1.0" step="0.05" value="0.15">
                 </div>
             </div>
             <div class="col-md-6">
-                <div id="thetaPlot"></div>
+                <div style="position: relative;">
+                    <div style="position: absolute; top: 10px; right: 10px; z-index: 1;">
+                        <select class="form-select form-select-sm w-auto" id="thetaTypeSelector">
+                            <option value="call">Call</option>
+                            <option value="put">Put</option>
+                        </select>
+                    </div>
+                    <div id="thetaPlot"></div>
+                </div>
                 <div class="slider-container">
-                    <label for="thetaSlider" class="form-label">Volatility (σ):
-                        <span class="value-display">0.25</span>
+                    <label for="thetaSlider" class="form-label">
+                        <span>Volatility (σ):
+                            <span class="value-display">0.15</span>
+                        </span>
                     </label>
-                    <input type="range" class="form-range volatility-slider" id="thetaSlider" min="0.05" max="1.0" step="0.05" value="0.25">
+                    <input type="range" class="form-range volatility-slider" id="thetaSlider" min="0.05" max="1.0" step="0.05" value="0.15">
                 </div>
             </div>
         </div>
@@ -123,8 +143,13 @@
             return (Math.log(S/K) + (r + sigma * sigma / 2) * T) / (sigma * Math.sqrt(T));
         }
 
+
         function delta_call(S, K, r, sigma, T) {
             return norm_cdf(d1(S, K, r, sigma, T));
+        }
+
+        function delta_put(S, K, r, sigma, T) {
+            return norm_cdf(d1(S, K, r, sigma, T)) - 1;
         }
 
         function gamma(S, K, r, sigma, T) {
@@ -144,18 +169,29 @@
                     r * K * Math.exp(-r * T) * norm_cdf(d2));
         }
 
+        function theta_put(S, K, r, sigma, T) {
+            const d1_val = d1(S, K, r, sigma, T);
+            const d2 = d1_val - sigma * Math.sqrt(T);
+            return (-S * sigma * Math.exp(-d1_val * d1_val / 2) / (2 * Math.sqrt(2 * Math.PI * T)) +
+                    r * K * Math.exp(-r * T) * norm_cdf(-d2));
+        }
+
         function updatePlots() {
             // Get the value from the slider that triggered the update
             const sigma = parseFloat(document.querySelector('.volatility-slider:focus') ? 
                 document.querySelector('.volatility-slider:focus').value : 
                 document.querySelector('.volatility-slider').value);
-
+        
+            // Get the selected types
+            const deltaType = document.getElementById('deltaTypeSelector').value;
+            const thetaType = document.getElementById('thetaTypeSelector').value;
+        
             // Update all sliders and their displays to match
             document.querySelectorAll('.volatility-slider').forEach(slider => {
                 slider.value = sigma;
                 slider.parentElement.querySelector('.value-display').textContent = sigma.toFixed(2);
             });
-
+        
             // Generate data points
             const S_values = [];
             const delta_values = [];
@@ -165,18 +201,18 @@
             
             for(let S = 50; S <= 150; S += 0.5) {
                 S_values.push(S);
-                delta_values.push(delta_call(S, K, r, sigma, T));
+                delta_values.push(deltaType === 'call' ? delta_call(S, K, r, sigma, T) : delta_put(S, K, r, sigma, T));
                 gamma_values.push(gamma(S, K, r, sigma, T));
                 vega_values.push(vega(S, K, r, sigma, T));
-                theta_values.push(theta_call(S, K, r, sigma, T));
+                theta_values.push(thetaType === 'call' ? theta_call(S, K, r, sigma, T) : theta_put(S, K, r, sigma, T));
             }
-
+        
             // Update all plots with new data
             const plots = [
-                { id: 'deltaPlot', values: delta_values, title: 'Delta Call Option', yaxis: 'Delta' },
+                { id: 'deltaPlot', values: delta_values, title: `Delta ${deltaType.charAt(0).toUpperCase() + deltaType.slice(1)} Option`, yaxis: 'Delta' },
                 { id: 'gammaPlot', values: gamma_values, title: 'Gamma Option', yaxis: 'Gamma' },
                 { id: 'vegaPlot', values: vega_values, title: 'Vega Option', yaxis: 'Vega' },
-                { id: 'thetaPlot', values: theta_values, title: 'Theta Option', yaxis: 'Theta' }
+                { id: 'thetaPlot', values: theta_values, title: `Theta ${thetaType.charAt(0).toUpperCase() + thetaType.slice(1)} Option`, yaxis: 'Theta' }
             ];
 
             plots.forEach(plot => {
@@ -213,6 +249,10 @@
         document.querySelectorAll('.volatility-slider').forEach(slider => {
             slider.addEventListener('input', updatePlots);
         });
+
+        // Add event listener for delta type selector
+        document.getElementById('deltaTypeSelector').addEventListener('change', updatePlots);
+        document.getElementById('thetaTypeSelector').addEventListener('change', updatePlots);
     </script>
 </body>
 </html>
